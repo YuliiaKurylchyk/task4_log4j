@@ -1,0 +1,3 @@
+[TRACE] 2020-04-03 18:05:30.762 Application:10 - This is trace message 
+[DEBUG] 2020-04-03 18:05:35.285 Application:11 - This is debug message 
+[INFO ] 2020-04-03 18:05:35.744 Application:12 - This is info message 

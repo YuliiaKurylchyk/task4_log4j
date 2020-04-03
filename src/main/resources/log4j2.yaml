@@ -1,0 +1,158 @@
+Configuration:
+  packages: "com.kurylchyk"
+  name: Log4j2_Config
+  properties:
+    property:
+      name: log-path
+      value: logs
+
+  #--------------------------------------
+  appenders:
+    Console:
+      name: Console_Appender
+      PatternLayout:
+        Pattern: "%highlight{%-5level}{FATAL=bg_red} %style{%date{yyyy-MM-dd
+          HH:mm:ss.SSS}}{blue} %class{1}:%L - %highlight{%msg} %xEx{short}%n"
+      Filters:
+        ThresholdFilter:
+        -
+          level: info
+          onMatch: NEUTRAL
+          onMismatch: ACCESS
+        -
+          level: warn
+          onMatch: DENY
+          onMismatch: NEUTRAL
+
+  #file will not be overwritten
+    File:
+    -
+      name: rootLogFile
+      filename: ${log-path}/rootFile.log
+      PatternLayout:
+        Pattern: "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %class{1}:%L - %msg %xEx{short}%n"
+    -
+      #all the level higher than warn will be saved to the file
+      name: logFileWarn
+      filename: ${log-path}/logFileWarn.log
+      PatternLayout:
+        Pattern: "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %class{1}:%L - %msg %xEx{short}%n"
+      Filters:
+        ThresholdFilter:
+          level: warn
+          onMatch: DENY
+          onMismatch: NEUTRAL
+    -
+      #only for warn logs
+      name: onlyWarnLog
+      filename: ${log-path}/onlyWarnLog.log
+      PatternLayout:
+        Pattern: "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %class{1}:%L - %msg %xEx{short}%n"
+      Filters:
+        ThresholdFilter:
+        -
+          level: warn
+          onMatch: NEUTRAL
+          onMismatch: ACCESS
+        -
+          level: error
+          onMatch: DENY
+          onMismatch: NEUTRAL
+
+
+#file will be overwritten after reaching the size of 1 kb
+    RollingFile:
+    -
+      name: rolFile1
+      fileName: ${log-path}/rollingFile1.log
+      filePattern: ${log-path}/archive/rolFile1.log.%d{yyyy-MM-dd}.gz
+      PatternLayout:
+        Pattern: "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %class{1}:%L - %msg %xEx{short}%n"
+      Policies:
+        SizeBasedTriggeringPolicy:
+          size: 1 KB
+    -
+      #will be overwritten every day
+      name: rolFile2
+      filename: ${log-path}/rollingFile2.log
+      filePattern: ${log-path}/archive/rolFile2.log.%d{yyyy-MM-dd}.gz
+      PatternLayout:
+        Pattern: "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %class{1}:%L - %msg %xEx{short}%n"
+      CronTriggeringPolicy:
+                schedule: "0 0 * * * ?"
+                evaluateOnStartup: true
+      DefaultRolloverStrategy:
+        max: 1
+     #will  be overwritten to a new file
+    -
+      name: rolFile3
+      filename: ${log-path}/rollingFile3.log
+      filePattern: ${log-path}/archive/rolFile3-%d{yyyy-MM-dd}.log
+      PatternLayout:
+        Pattern: "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %class{1}:%L - %msg %xEx{short}%n"
+      Policies:
+        TimeBasedTriggeringPolicy:
+          interval: 1
+          modulate: true
+        SizeBasedTriggeringPolicy:
+          size: 1 KB
+
+    SMTP:
+      name: MailAppender
+      subject: "Error Log"
+      to: "juliakurylo18@gmail.com"
+      from: "irynahnatetska@gmail.com"
+      smtpHost: "smtp.gmail.com"
+      smtpPort: 465
+      smtpProtocol: smtps
+      smtpUsername: "irynahnatetska@gmail.com"
+      smtpPassword: "" #it works when you enter the password
+      bufferSize: 512
+      HTMLLayout:
+        charset: "UTF-8"
+        title: "Logs from Yuliia Kurylchyk"
+      Filters:
+        ThresholdFilter:
+            level: fatal
+            onMatch: DENY
+            onMismatch: NEUTRAL
+
+
+    SMS:
+      name: SMSsender
+      PatternLayout:
+        Pattern: "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %class{1}:%L - %msg %xEx{short}%n"
+
+    Async:
+      name: AsyncSMS
+      AppenderRef:
+        ref: SMSsender
+
+  Loggers:
+    Logger:
+      - name: com.kurylchyk.Application
+        level: all
+        AppenderRef:
+        - ref: Console_Appender
+          level: debug
+        - ref: rolFile1
+          level: trace
+        - ref: rolFile2
+          level: trace
+        - ref: rolFile3
+          level: error
+        - ref: logFileWarn
+        - ref: onlyWarnLog
+        - ref: rootLogFile
+          level: trace
+        - ref: AsyncSMS
+          level: fatal
+
+    Root:
+      level: all
+      AppenderRef:
+      - ref: MailAppender
+
+
+
+
